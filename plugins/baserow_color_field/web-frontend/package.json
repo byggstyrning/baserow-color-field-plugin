@@ -1,0 +1,6 @@
+{
+  "name": "@baserow-color-field/web-frontend",
+  "version": "1.0.0",
+  "description": "Baserow Color Field plugin frontend",
+  "main": "plugin.js"
+}

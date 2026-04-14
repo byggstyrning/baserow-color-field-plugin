@@ -1,0 +1,12 @@
+{
+  "name": "Baserow Color Field",
+  "version": "1.0.0",
+  "supported_baserow_versions": "2.1.0>=",
+  "plugin_api_version": "0.0.1-alpha",
+  "description": "Adds a Color field type that stores hex color values with a full color picker UI.",
+  "author": "Byggstyrning",
+  "author_url": "https://byggstyrning.se",
+  "url": "",
+  "license": "MIT",
+  "contact": ""
+}
