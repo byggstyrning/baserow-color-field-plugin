@@ -1,10 +1,10 @@
-# Baserow + plugin: snabb utvecklingsloop
+# Baserow + plugin: fast development loop
 
-Mål: slippa rebuilda hela stacken för varje liten ändring.
+Goal: avoid rebuilding the entire stack for every small change.
 
-## 1) Backend-only ändringar (snabbast)
+## 1) Backend-only changes (fastest)
 
-Använd när du ändrar Python-filer i plugin-backend:
+Use when you modify Python files in plugin-backend:
 
 ```bash
 cd /home/bimbot-ubuntu/apps/baserow-color-field-plugin
@@ -12,17 +12,17 @@ bash ./scripts/sync-backend.sh
 bash ./scripts/smoke-test.sh
 ```
 
-Detta:
-- kopierar plugin-backend till containern
-- uppdaterar `site-packages`
-- restartar endast `baserow`
+This:
+- copies the plugin backend into the container
+- updates `site-packages`
+- restarts only the `baserow` container
 
-Ingen image-build krävs.
+No image build required.
 
-## 2) Frontend/plugin UI ändringar
+## 2) Frontend / plugin UI changes
 
-När du ändrar Vue/JS i plugin-web-frontend krävs ny frontend-bundle.
-Kör:
+When you modify Vue/JS in plugin-web-frontend a new frontend bundle is needed.
+Run:
 
 ```bash
 cd /home/bimbot-ubuntu/apps/baserow-color-field-plugin
@@ -30,23 +30,23 @@ bash ./scripts/deploy-fast.sh
 bash ./scripts/smoke-test.sh
 ```
 
-Detta:
-- bygger endast Baserow-plugin-imagen
-- återskapar endast `baserow`-containern med samma runtime-config
-- rör inte övriga containers i er stack
+This:
+- builds only the Baserow plugin image
+- recreates only the `baserow` container with the same runtime config
+- leaves other containers in the stack untouched
 
-## 3) Standardiserad daglig loop
+## 3) Standard daily loop
 
-1. Koda ändring.
-2. Välj deploy-spår:
+1. Code the change.
+2. Choose a deploy track:
    - backend-only: `sync-backend.sh`
-   - frontend eller mixed: `deploy-fast.sh`
-3. Kör `smoke-test.sh`.
-4. Verifiera funktion i UI/API.
+   - frontend or mixed: `deploy-fast.sh`
+3. Run `smoke-test.sh`.
+4. Verify functionality in the UI / API.
 
-## 4) Miljövariabler (valfritt)
+## 4) Environment variables (optional)
 
-Du kan overridea default-värden:
+You can override the default values:
 
 ```bash
 IMAGE_TAG=baserow-custom:2.1.6-color-field CONTAINER_NAME=baserow bash ./scripts/deploy-fast.sh
@@ -54,10 +54,10 @@ CONTAINER_NAME=baserow bash ./scripts/sync-backend.sh
 BASE_URL=http://127.0.0.1 bash ./scripts/smoke-test.sh
 ```
 
-`BASE_URL` är valfri. Utan den verifieras endast container health.
+`BASE_URL` is optional. Without it only container health is verified.
 
-## 5) Varför detta är bättre
+## 5) Why this is better
 
-- Ingen `docker compose up --build` för hela miljön.
-- Endast `baserow` deployas om.
-- Backend-iteration blir sekunder istället för minuter.
+- No `docker compose up --build` for the entire environment.
+- Only the `baserow` container is redeployed.
+- Backend iteration takes seconds instead of minutes.
