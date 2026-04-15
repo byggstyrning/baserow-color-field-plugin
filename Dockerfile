@@ -19,9 +19,12 @@ RUN git clone --depth 1 --branch ${BASEROW_VERSION} https://github.com/baserow/b
 COPY plugins/baserow_color_field/web-frontend \
      /build/web-frontend/plugins/baserow_color_field/
 
+COPY scripts/patch-vue-accessible-color-picker.js /build/scripts/patch-vue-accessible-color-picker.js
+
 RUN cd /build/web-frontend && yarn install --pure-lockfile
 
-RUN cd /build/web-frontend && yarn add vue-accessible-color-picker colorjs.io
+RUN cd /build/web-frontend && yarn add vue-accessible-color-picker@6.0.0 colorjs.io \
+    && node /build/scripts/patch-vue-accessible-color-picker.js
 
 RUN ln -sf /build/web-frontend/node_modules /build/premium/web-frontend/node_modules \
     && ln -sf /build/web-frontend/node_modules /build/enterprise/web-frontend/node_modules

@@ -35,6 +35,7 @@
       >
         <ColorPickerPopup
           :color="localValue || '#FFFFFFFF'"
+          :saved-field-value="value || ''"
           layout="row-modal"
           @update:color="onPickerChange"
         />
@@ -46,6 +47,7 @@
 <script>
 import rowEditField from '@baserow/modules/database/mixins/rowEditField'
 import ColorPickerPopup from './ColorPickerPopup.vue'
+import { colorFieldDebug } from '../utils/colorFieldDebug'
 
 export default {
   components: { ColorPickerPopup },
@@ -63,6 +65,9 @@ export default {
   },
   watch: {
     value(newVal) {
+      if (this.pickerPointerActive) {
+        return
+      }
       this.localValue = newVal || ''
     },
     row: {
@@ -78,6 +83,11 @@ export default {
   methods: {
     onPickerChange(hex) {
       this.localValue = hex
+      colorFieldDebug('RowEditFieldColor', 'onPickerChange', {
+        hex,
+        pickerPointerActive: this.pickerPointerActive,
+        fieldValue: this.value,
+      })
       if (!this.pickerPointerActive) {
         this.emitIfChanged(hex)
       }
@@ -87,6 +97,7 @@ export default {
         return
       }
       if (hex !== this.value) {
+        colorFieldDebug('RowEditFieldColor', 'emit:update', { hex, fieldValue: this.value })
         this.$emit('update', hex, this.value)
       }
     },

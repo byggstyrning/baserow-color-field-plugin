@@ -7,7 +7,7 @@
         :alpha-channel="alphaChannel"
         :copy="false"
         default-format="hex"
-        :visible-formats="['hex', 'hsl', 'srgb']"
+        :visible-formats="['hex']"
         :id="pickerId"
         @color-change="onColorChange"
       />
@@ -17,8 +17,22 @@
 
 <script>
 import { ColorPicker } from 'vue-accessible-color-picker'
+import Color from 'colorjs.io'
+import { colorFieldDebug } from '../utils/colorFieldDebug'
 
 let instanceCounter = 0
+
+/** With alpha UI, pass #RRGGBBFF instead of #RRGGBB so VACP keeps a stable alpha channel. */
+function ensureHexAlphaForPicker(showAlpha, hex) {
+  if (!showAlpha || hex == null || hex === '') {
+    return hex
+  }
+  const s = String(hex).trim()
+  if (/^#[0-9A-Fa-f]{6}$/.test(s)) {
+    return s.toUpperCase() + 'FF'
+  }
+  return s
+}
 
 export default {
   components: { ColorPicker },
@@ -35,12 +49,20 @@ export default {
       type: String,
       default: 'stacked',
     },
+    /** Persisted cell/row value; used to ignore stale :color echoes that reset draft to saved state. */
+    savedFieldValue: {
+      type: String,
+      default: null,
+    },
   },
   emits: ['update:color'],
   data() {
     instanceCounter += 1
     return {
-      internalColor: this.color || '#FFFFFFFF',
+      internalColor: ensureHexAlphaForPicker(
+        this.showAlpha,
+        this.color || '#FFFFFFFF'
+      ),
       pickerId: `vacp-${instanceCounter}`,
       lastEmitted: null,
     }
@@ -55,44 +77,101 @@ export default {
   },
   watch: {
     color(newVal) {
-      if (newVal && newVal !== this.lastEmitted) {
-        this.internalColor = newVal
+      const norm = (s) =>
+        s == null || s === '' ? '' : String(s).trim().toUpperCase()
+      const skipped =
+        Boolean(newVal) &&
+        newVal === this.lastEmitted &&
+        String(newVal).toUpperCase() !== String(this.internalColor).toUpperCase()
+      const staleSavedEchoIgnored =
+        Boolean(newVal && newVal !== this.lastEmitted) &&
+        this.savedFieldValue != null &&
+        String(this.savedFieldValue).length > 0 &&
+        norm(newVal) === norm(this.savedFieldValue) &&
+        this.lastEmitted != null &&
+        norm(this.lastEmitted) !== norm(this.savedFieldValue) &&
+        norm(this.internalColor) === norm(this.lastEmitted)
+      colorFieldDebug('ColorPickerPopup', 'watch:color', {
+        pickerId: this.pickerId,
+        newVal,
+        lastEmitted: this.lastEmitted,
+        internalColor: this.internalColor,
+        skippedSyncMismatch: skipped,
+        staleSavedEchoIgnored,
+      })
+      if (staleSavedEchoIgnored) {
+        return
+      }
+      const bound = ensureHexAlphaForPicker(this.showAlpha, newVal)
+      if (newVal && bound && bound !== this.lastEmitted) {
+        this.internalColor = bound
+      } else if (newVal && bound && skipped) {
+        // Parent echoed our last emission but the picker internal string drifted; resync.
+        this.internalColor = bound
       }
     },
   },
   methods: {
     onColorChange(eventData) {
-      const hex = this.colorToHex8(eventData.color)
+      const hex = this.colorChangeToHex8(eventData)
+      colorFieldDebug('ColorPickerPopup', 'color-change', {
+        pickerId: this.pickerId,
+        emittedHex: hex,
+        propColor: this.color,
+        cssColor: eventData.cssColor,
+      })
       this.lastEmitted = hex
       this.$emit('update:color', hex)
     },
-    colorToHex8(color) {
+    /**
+     * Serialize from the library Color object; fall back to parsing cssColor if needed.
+     */
+    colorChangeToHex8(eventData) {
       try {
-        const srgb = color.to('srgb')
-        const r = Math.round(
-          Math.max(0, Math.min(1, srgb.coords[0])) * 255
-        )
-        const g = Math.round(
-          Math.max(0, Math.min(1, srgb.coords[1])) * 255
-        )
-        const b = Math.round(
-          Math.max(0, Math.min(1, srgb.coords[2])) * 255
-        )
-        const a = Math.round(Math.max(0, Math.min(1, srgb.alpha ?? 1)) * 255)
-
-        const hex6 =
-          '#' +
-          r.toString(16).padStart(2, '0').toUpperCase() +
-          g.toString(16).padStart(2, '0').toUpperCase() +
-          b.toString(16).padStart(2, '0').toUpperCase()
-
-        if (a === 255) {
-          return hex6
-        }
-        return hex6 + a.toString(16).padStart(2, '0').toUpperCase()
+        return this.serializeColorToHex8(eventData.color)
       } catch {
-        return '#FFFFFFFF'
+        try {
+          return this.serializeColorToHex8(new Color(eventData.cssColor))
+        } catch {
+          return '#FFFFFFFF'
+        }
       }
+    },
+    serializeColorToHex8(colorObj) {
+      const srgb = colorObj.to('srgb')
+      let s = srgb.toString({ format: 'hex', collapse: false })
+      if (typeof s !== 'string' || !s.startsWith('#')) {
+        return this.serializeColorToHex8Manual(srgb)
+      }
+      s = s.trim().toUpperCase()
+      if (s.length === 7) {
+        return s
+      }
+      if (s.length === 9) {
+        return s
+      }
+      return this.serializeColorToHex8Manual(srgb)
+    },
+    serializeColorToHex8Manual(srgb) {
+      const r = Math.round(
+        Math.max(0, Math.min(1, srgb.coords[0])) * 255
+      )
+      const g = Math.round(
+        Math.max(0, Math.min(1, srgb.coords[1])) * 255
+      )
+      const b = Math.round(
+        Math.max(0, Math.min(1, srgb.coords[2])) * 255
+      )
+      const a = Math.round(Math.max(0, Math.min(1, srgb.alpha ?? 1)) * 255)
+      const hex6 =
+        '#' +
+        r.toString(16).padStart(2, '0').toUpperCase() +
+        g.toString(16).padStart(2, '0').toUpperCase() +
+        b.toString(16).padStart(2, '0').toUpperCase()
+      if (a === 255) {
+        return hex6
+      }
+      return hex6 + a.toString(16).padStart(2, '0').toUpperCase()
     },
   },
 }
@@ -126,12 +205,11 @@ export default {
 
 .color-picker-popup .vacp-color-picker {
   display: grid;
-  grid-template-columns: 1fr min-content;
+  grid-template-columns: 1fr;
   grid-template-areas:
-    'space space'
-    'hue hue'
-    'alpha alpha'
-    'inputs actions';
+    'space'
+    'hue'
+    'alpha';
   border: none;
   padding: 0;
   gap: 8px;
@@ -150,33 +228,7 @@ export default {
   grid-area: alpha;
 }
 
-.color-picker-popup .vacp-color-inputs {
-  grid-area: inputs;
-  grid-column: 1;
-  /* Library default is align-items:center; bottom-align the format switch with the input row. */
-  align-items: flex-end;
-}
-
-.color-picker-popup .vacp-actions {
-  grid-area: actions;
-  grid-column: 2;
-  align-self: stretch !important;
-  justify-self: end;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  padding-top: calc(var(--vacp-spacing, 6px) * 2);
-}
-
-.color-picker-popup .vacp-actions > * {
-  align-self: flex-end;
-}
-
-.color-picker-popup .vacp-color-input-group {
-  border-radius: 5px;
-}
-
-/* Rounded controls (hue / alpha tracks + bottom hex / format inputs) */
+/* Rounded controls (hue / alpha tracks) */
 .color-picker-popup .vacp-range-input {
   border-radius: 6px;
 }
@@ -189,28 +241,12 @@ export default {
   border-radius: 6px;
 }
 
-.color-picker-popup .vacp-color-input {
-  border-radius: 5px;
-  font-family: var(--vacp-font-family);
-  font-size: var(--vacp-font-size);
-  line-height: 20px;
-  font-weight: 400;
-  letter-spacing: normal;
-  font-variant-numeric: tabular-nums;
-}
-
-.color-picker-popup .vacp-color-input input {
-  font-family: inherit;
-  font-size: inherit;
-  line-height: inherit;
-}
-
 .color-picker-popup .vacp-format-switch-button,
 .color-picker-popup .vacp-copy-button {
   border-radius: 5px;
 }
 
-/* Copy action is disabled in both grid and row modal pickers. */
+/* Copy is disabled via :copy="false"; keep rule if library still renders a node. */
 .color-picker-popup .vacp-copy-button {
   display: none !important;
 }
@@ -222,11 +258,10 @@ export default {
 
 .color-picker-popup--row-modal .vacp-color-picker {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(170px, 0.9fr) min-content;
+  grid-template-columns: minmax(220px, 1fr) minmax(170px, 0.9fr);
   grid-template-areas:
-    'space hue hue'
-    'space alpha alpha'
-    'space inputs actions';
+    'space hue'
+    'space alpha';
   column-gap: 14px;
   row-gap: 8px;
   align-items: start;
@@ -238,23 +273,11 @@ export default {
 
 .color-picker-popup--row-modal .vacp-range-input-group:first-of-type {
   grid-area: hue;
-  grid-column: 2 / 4;
+  grid-column: 2;
 }
 
 .color-picker-popup--row-modal .vacp-range-input-group:last-of-type {
   grid-area: alpha;
-  grid-column: 2 / 4;
-}
-
-.color-picker-popup--row-modal .vacp-color-inputs {
-  grid-area: inputs;
   grid-column: 2;
-}
-
-.color-picker-popup--row-modal .vacp-actions {
-  grid-area: actions;
-  grid-column: 3;
-  justify-self: end;
-  align-self: stretch !important;
 }
 </style>

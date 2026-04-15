@@ -17,19 +17,21 @@
       </div>
     </div>
     <div v-else class="grid-field-color__editing">
-      <span
-        class="grid-field-color__swatch"
-        :style="{ backgroundColor: draft || 'transparent' }"
-      ></span>
-      <input
-        ref="input"
-        v-model="draft"
-        type="text"
-        class="grid-field-text__input"
-        maxlength="9"
-        placeholder="#RRGGBB"
-        @keydown.enter.exact.prevent="commitEdit"
-      />
+      <div class="grid-field-color__chip grid-field-color__chip--editing">
+        <span
+          class="grid-field-color__swatch grid-field-color__swatch--chip"
+          :style="{ backgroundColor: draft || 'transparent' }"
+        ></span>
+        <input
+          ref="input"
+          v-model="draft"
+          type="text"
+          class="grid-field-text__input grid-field-color__hex-input"
+          maxlength="9"
+          placeholder="#RRGGBB"
+          @keydown.enter.exact.prevent="commitEdit"
+        />
+      </div>
       <div
         ref="pickerContainer"
         class="grid-field-color__picker-dropdown"
@@ -40,6 +42,7 @@
       >
         <ColorPickerPopup
           :color="draft || '#FFFFFFFF'"
+          :saved-field-value="value || ''"
           @update:color="onPickerChange"
         />
       </div>
@@ -50,6 +53,7 @@
 <script>
 import gridField from '@baserow/modules/database/mixins/gridField'
 import ColorPickerPopup from './ColorPickerPopup.vue'
+import { colorFieldDebug } from '../utils/colorFieldDebug'
 
 export default {
   components: { ColorPickerPopup },
@@ -78,8 +82,20 @@ export default {
         }
 
         if (this.editing) {
+          // Tab inside the popup must not bubble to the grid: otherwise the cell can
+          // unmount before vacp input change handlers run (null ref in library le()).
+          if (event.key === 'Tab') {
+            const el = document.activeElement
+            if (
+              el &&
+              typeof el.closest === 'function' &&
+              el.closest('.color-picker-popup')
+            ) {
+              event.stopPropagation()
+            }
+            return
+          }
           const ignoredKeys = [
-            'Tab',
             'ArrowLeft',
             'ArrowUp',
             'ArrowRight',
@@ -237,8 +253,7 @@ export default {
     },
     /**
      * While dragging the 2D area or sliders, defer syncing hex into `draft` so the
-     * cell input / prop round-trip does not run every move. Typing in the popup hex
-     * field updates draft immediately.
+     * cell input / prop round-trip does not run every move. Hex is edited in the cell only.
      */
     isPickerTextInputFocused() {
       const el = document.activeElement
@@ -320,10 +335,14 @@ export default {
     },
     onPickerChange(hex) {
       this.pendingPickerHex = hex
-      // Keep drag/slider interaction preview-only and sync on pointerup.
-      if (!this.pickerPointerActive) {
-        this.draft = hex
-      }
+      // Always keep `draft` in sync with the picker emission so `:color` and the swatch
+      // stay aligned with the library internal color.
+      this.draft = hex
+      colorFieldDebug('GridViewFieldColor', 'onPickerChange', {
+        hex,
+        pickerPointerActive: this.pickerPointerActive,
+        fieldValue: this.value,
+      })
     },
     normalizeHex(val) {
       if (val == null) return ''
@@ -404,6 +423,12 @@ export default {
   background: var(--color-neutral-50, #f9fafb);
 }
 
+.grid-field-color__chip--editing {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 .grid-field-color__chip--empty {
   border-style: dashed;
   color: var(--color-neutral-600, #667085);
@@ -441,16 +466,33 @@ export default {
 
 .grid-field-color__editing {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: flex-start;
   width: 100%;
-  gap: 6px;
+  min-height: 24px;
   position: relative;
 }
 
-.grid-field-color__editing .grid-field-text__input {
+/* Match read-only chip row; reset Baserow text-field padding/height that shifts content down */
+.grid-field-color .grid-field-color__chip--editing .grid-field-text__input.grid-field-color__hex-input {
   flex: 1;
   min-width: 72px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: inherit;
+  min-height: 16px;
+  height: auto;
+}
+
+.grid-field-color .grid-field-color__chip--editing .grid-field-text__input.grid-field-color__hex-input:focus {
+  outline: none;
 }
 
 .grid-field-color__picker-dropdown {
