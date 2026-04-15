@@ -1,20 +1,11 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/%23_-_COLOR_FIELD-FF5733?style=for-the-badge&labelColor=1a1a2e&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0ZGNTczMyI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48L3N2Zz4=">
-    <img alt="Baserow Color Field" src="https://img.shields.io/badge/%23_-_COLOR_FIELD-FF5733?style=for-the-badge&labelColor=f5f5f5&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0ZGNTczMyI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48L3N2Zz4=">
-  </picture>
-</p>
+# Baserow Color Field
 
-<p align="center">
-  A native <strong>Color</strong> field type for <a href="https://baserow.io">Baserow</a>.<br>
-  Pick, paste, sort, filter — hex colors as first-class data.
-</p>
+A native **Color** field type for [Baserow](https://baserow.io).
+Pick, paste, sort, filter — hex colors as first-class data.
 
-<p align="center">
-  <a href="#quick-start"><img src="https://img.shields.io/badge/deploy-2_commands-22c55e?style=flat-square" alt="Deploy"></a>
-  <img src="https://img.shields.io/badge/baserow-%E2%89%A5_2.1.0-4338ca?style=flat-square" alt="Baserow 2.1.0+">
-  <img src="https://img.shields.io/badge/license-MIT-gray?style=flat-square" alt="MIT">
-</p>
+[![Deploy](https://img.shields.io/badge/deploy-2_commands-22c55e?style=flat-square)](#quick-start)
+![Baserow 2.1.0+](https://img.shields.io/badge/baserow-%E2%89%A5_2.1.0-4338ca?style=flat-square)
+![MIT](https://img.shields.io/badge/license-MIT-gray?style=flat-square)
 
 ---
 
