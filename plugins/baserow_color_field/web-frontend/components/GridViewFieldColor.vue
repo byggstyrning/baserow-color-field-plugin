@@ -377,16 +377,16 @@ export default {
 <style>
 .grid-field-color {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-start;
-  padding: 0 6px 0 0;
+  padding: 5px 6px 0 5px;
   position: relative;
   min-height: 100%;
 }
 
 .grid-field-color__display {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-start;
   width: 100%;
   min-height: 24px;

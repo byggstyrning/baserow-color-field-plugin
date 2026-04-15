@@ -125,9 +125,49 @@ export default {
 }
 
 .color-picker-popup .vacp-color-picker {
+  display: grid;
+  grid-template-columns: 1fr min-content;
+  grid-template-areas:
+    'space space'
+    'hue hue'
+    'alpha alpha'
+    'inputs actions';
   border: none;
   padding: 0;
   gap: 8px;
+  align-items: start;
+}
+
+.color-picker-popup .vacp-color-space {
+  grid-area: space;
+}
+
+.color-picker-popup .vacp-range-input-group:first-of-type {
+  grid-area: hue;
+}
+
+.color-picker-popup .vacp-range-input-group:last-of-type {
+  grid-area: alpha;
+}
+
+.color-picker-popup .vacp-color-inputs {
+  grid-area: inputs;
+  grid-column: 1;
+}
+
+.color-picker-popup .vacp-actions {
+  grid-area: actions;
+  grid-column: 2;
+  align-self: stretch !important;
+  justify-self: end;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding-top: calc(var(--vacp-spacing, 6px) * 2);
+}
+
+.color-picker-popup .vacp-actions > * {
+  align-self: flex-end;
 }
 
 .color-picker-popup .vacp-color-input-group {
@@ -180,18 +220,39 @@ export default {
 
 .color-picker-popup--row-modal .vacp-color-picker {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(170px, 0.9fr);
+  grid-template-columns: minmax(220px, 1fr) minmax(170px, 0.9fr) min-content;
+  grid-template-areas:
+    'space hue hue'
+    'space alpha alpha'
+    'space inputs actions';
   column-gap: 14px;
+  row-gap: 8px;
   align-items: start;
 }
 
 .color-picker-popup--row-modal .vacp-color-space {
-  grid-column: 1;
-  grid-row: 1 / span 3;
-  width: 100%;
+  grid-area: space;
 }
 
-.color-picker-popup--row-modal .vacp-color-picker > :not(.vacp-color-space) {
+.color-picker-popup--row-modal .vacp-range-input-group:first-of-type {
+  grid-area: hue;
+  grid-column: 2 / 4;
+}
+
+.color-picker-popup--row-modal .vacp-range-input-group:last-of-type {
+  grid-area: alpha;
+  grid-column: 2 / 4;
+}
+
+.color-picker-popup--row-modal .vacp-color-inputs {
+  grid-area: inputs;
   grid-column: 2;
+}
+
+.color-picker-popup--row-modal .vacp-actions {
+  grid-area: actions;
+  grid-column: 3;
+  justify-self: end;
+  align-self: stretch !important;
 }
 </style>

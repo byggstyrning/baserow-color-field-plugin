@@ -55,6 +55,7 @@ export default {
       localValue: this.value || '',
       pickerPointerActive: false,
       docPointerUpHandler: null,
+      modalCleared: false,
     }
   },
   beforeUnmount() {
@@ -64,16 +65,27 @@ export default {
     value(newVal) {
       this.localValue = newVal || ''
     },
+    row: {
+      handler(newRow) {
+        if (!newRow || !newRow._) {
+          this.modalCleared = true
+          this.detachDocPointerUp()
+        }
+      },
+      deep: false,
+    },
   },
   methods: {
     onPickerChange(hex) {
       this.localValue = hex
-      // Never emit during active drag/slider interaction; flush on pointerup.
       if (!this.pickerPointerActive) {
         this.emitIfChanged(hex)
       }
     },
     emitIfChanged(hex) {
+      if (this.modalCleared || !this.row || !this.row._) {
+        return
+      }
       if (hex !== this.value) {
         this.$emit('update', hex, this.value)
       }
@@ -206,54 +218,4 @@ export default {
   width: 100%;
 }
 
-.row-edit-field-color__picker .vacp-color-picker {
-  display: grid !important;
-  grid-template-columns: minmax(250px, 1fr) minmax(190px, 0.9fr) !important;
-  grid-template-areas:
-    'space hue'
-    'space alpha'
-    'space actions'
-    'space inputs';
-  column-gap: 12px;
-  row-gap: 8px;
-  align-items: start;
-}
-
-.row-edit-field-color__picker .vacp-color-space {
-  grid-area: space;
-  width: 100%;
-  grid-column: 1 !important;
-}
-
-.row-edit-field-color__picker .vacp-range-input-group {
-  grid-column: 2;
-}
-
-.row-edit-field-color__picker .vacp-range-input-group:first-of-type {
-  grid-area: hue;
-}
-
-.row-edit-field-color__picker .vacp-range-input-group:last-of-type {
-  grid-area: alpha;
-}
-
-.row-edit-field-color__picker .vacp-actions {
-  grid-area: actions;
-  justify-self: start;
-}
-
-.row-edit-field-color__picker .vacp-color-inputs {
-  grid-area: inputs;
-  grid-column: 2;
-}
-
-/* Row modal only: Baserow-like bottom controls */
-.row-edit-field-color__picker .vacp-color-input-group,
-.row-edit-field-color__picker .vacp-color-inputs,
-.row-edit-field-color__picker .vacp-color-input,
-.row-edit-field-color__picker .vacp-color-input input,
-.row-edit-field-color__picker .vacp-format-switch-button,
-.row-edit-field-color__picker .vacp-copy-button {
-  border-radius: 5px !important;
-}
 </style>

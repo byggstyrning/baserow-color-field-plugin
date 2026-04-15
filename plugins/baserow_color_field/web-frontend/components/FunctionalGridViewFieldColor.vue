@@ -30,9 +30,9 @@ export default {
 <style>
 .grid-field-color--functional {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-start;
-  padding: 0 6px 0 0;
+  padding: 5px 6px 0 5px;
   min-height: 100%;
 }
 
