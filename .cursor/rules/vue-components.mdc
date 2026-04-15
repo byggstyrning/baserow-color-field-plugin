@@ -1,0 +1,39 @@
+---
+globs: "**/*.vue"
+description: Coding conventions for Baserow color field Vue components
+---
+
+# Vue component conventions
+
+## File locations and naming
+
+All field view components live in `plugins/baserow_color_field/web-frontend/components/`. Baserow expects specific component roles; names must follow the pattern:
+
+| Component | Role |
+|-----------|------|
+| `GridViewFieldColor.vue` | Inline editable cell in the grid view |
+| `FunctionalGridViewFieldColor.vue` | Read-only (functional) render of the grid cell |
+| `RowEditFieldColor.vue` | Field editor inside the row expand modal |
+| `RowCardFieldColor.vue` | Compact read-only swatch on card/kanban views |
+| `ColorPickerPopup.vue` | Shared color picker popup (wraps `vue-accessible-color-picker`) |
+
+When adding a new component, wire it in `fieldTypes.js` via the matching getter (e.g. `getGridViewFieldComponent()`).
+
+## Styling
+
+- Use **unscoped** `<style>` blocks with BEM-like class prefixes scoped by field name:
+  - `.grid-field-color`, `.grid-field-color__display`, `.grid-field-color__swatch`
+  - `.row-edit-field-color`, `.row-edit-field-color__picker`
+  - `.color-picker-popup`, `.color-picker-popup--row-modal`
+- Layout variations between grid popup and row modal are handled via a `layout` prop (`"default"` vs `"row-modal"`) with modifier classes.
+- Avoid `!important` unless overriding third-party library defaults from `vue-accessible-color-picker`.
+
+## Color picker integration
+
+- `ColorPickerPopup.vue` wraps `<ColorPicker>` from `vue-accessible-color-picker`.
+- Hex8 ↔ internal color format conversion happens inside this component.
+- The popup communicates via `v-model` (hex string) and a `@close` event.
+
+## Dependencies
+
+- `vue-accessible-color-picker` and `colorjs.io` are installed during the Docker frontend build stage (`yarn add` in the Dockerfile), not in the plugin's own `package.json`.

@@ -3,6 +3,9 @@
 __pycache__/
 .env
 .env.*
-.cursor/
+# Cursor IDE — ignore local state, commit rules and skills
+.cursor/*
+!.cursor/rules/
+!.cursor/skills/
 node_modules/
 dist/

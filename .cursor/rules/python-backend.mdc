@@ -1,0 +1,37 @@
+---
+globs: "**/*.py"
+description: Coding conventions for the Baserow color field Django backend
+---
+
+# Python backend conventions
+
+## Architecture
+
+The backend is a standard Baserow plugin package at `plugins/baserow_color_field/backend/src/baserow_color_field/`:
+
+| File | Responsibility |
+|------|----------------|
+| `apps.py` | Django `AppConfig.ready()` — registers `ColorFieldPlugin` and `ColorFieldType` with Baserow registries |
+| `plugins.py` | `ColorFieldPlugin(Plugin)` — declares the plugin; returns no extra API URLs |
+| `models.py` | `ColorField(Field)` — thin model subclass (no extra columns; uses the parent `CharField`) |
+| `field_types.py` | `ColorFieldType(CollationSortMixin, CharFieldMatchingRegexFieldType)` — validation, normalization, random value generation |
+
+## Validation and normalization
+
+- Accepted formats: `#RGB`, `#RGBA`, `#RRGGBB`, `#RRGGBBAA` (regex: `^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$`).
+- Short forms (`#RGB`, `#RGBA`) are expanded to 6/8 digits in `prepare_value_for_db`.
+- All stored values are uppercased.
+- Max length is 9 characters (`#RRGGBBAA`).
+
+## Registration flow
+
+`apps.py` → `AppConfig.ready()`:
+1. `plugin_registry.register(ColorFieldPlugin())` — makes the plugin known to Baserow.
+2. `field_type_registry.register(ColorFieldType())` — makes the field type available in the database module.
+
+## Runtime environment
+
+- Python **3.14** inside the Baserow container.
+- The package is installed as an editable copy into `/baserow/venv/lib/python3.14/site-packages/baserow_color_field`.
+- `setup.py` uses `setuptools`; there is no `pyproject.toml` yet.
+- Do not add heavy dependencies — the backend runs inside the all-in-one Baserow image.

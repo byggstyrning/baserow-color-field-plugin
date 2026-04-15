@@ -1,0 +1,31 @@
+---
+globs: "scripts/**"
+description: Guard rails for Baserow plugin helper scripts
+---
+
+# Script conventions
+
+## Overview
+
+| Script | Purpose |
+|--------|---------|
+| `deploy-fast.sh` | Full image build + container recreate (frontend + backend) |
+| `sync-backend.sh` | Hot-copy Python source into a running container (backend only) |
+| `smoke-test.sh` | Container health check, optional HTTP probe |
+| `recreate_container.py` | Inspect running container, recreate with new image preserving runtime config |
+
+## Environment variables
+
+| Variable | Default | Used by |
+|----------|---------|---------|
+| `IMAGE_TAG` | `baserow-custom:2.1.6-color-field` | `deploy-fast.sh` |
+| `CONTAINER_NAME` | `baserow` | all scripts |
+| `BASEROW_VERSION` | `2.1.6` | `deploy-fast.sh` (Docker build-arg) |
+| `BASE_URL` | *(empty)* | `smoke-test.sh` (optional HTTP check) |
+
+## Key constraints
+
+- **`recreate_container.py`** introspects the existing container's binds, ports, env, restart policy, network, entrypoint, and command, then recreates with the same config on the new image. Do not simplify this to a bare `docker run` — it would lose the user's runtime configuration.
+- **`sync-backend.sh`** copies source to **two** container paths (plugin dir + site-packages). Both must be updated together; removing one breaks either the plugin loader or Python imports.
+- **`smoke-test.sh`** must stay idempotent with no side-effects. It only reads container state and optionally probes HTTP.
+- All scripts use `set -euo pipefail`. Preserve this; do not add `|| true` to mask failures unless there is an explicit reason.
