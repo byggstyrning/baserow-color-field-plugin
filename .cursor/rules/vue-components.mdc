@@ -15,7 +15,7 @@ All field view components live in `plugins/baserow_color_field/web-frontend/comp
 | `FunctionalGridViewFieldColor.vue` | Read-only (functional) render of the grid cell |
 | `RowEditFieldColor.vue` | Field editor inside the row expand modal |
 | `RowCardFieldColor.vue` | Compact read-only swatch on card/kanban views |
-| `ColorPickerPopup.vue` | Shared color picker popup (wraps `vue-accessible-color-picker`) |
+| `ColorPickerPopup.vue` | Shared **sliders-only** popup (patched `vue-accessible-color-picker`; hex is edited in the grid cell or row chip, not in the popup) |
 
 When adding a new component, wire it in `fieldTypes.js` via the matching getter (e.g. `getGridViewFieldComponent()`).
 
@@ -30,10 +30,11 @@ When adding a new component, wire it in `fieldTypes.js` via the matching getter 
 
 ## Color picker integration
 
-- `ColorPickerPopup.vue` wraps `<ColorPicker>` from `vue-accessible-color-picker`.
-- Hex8 ↔ internal color format conversion happens inside this component.
+- `ColorPickerPopup.vue` wraps `<ColorPicker>` from `vue-accessible-color-picker` with `:visible-formats="['hex']"` as a safety net.
+- The **shipped** bundle omits the library’s text/format row (hex/HSL inputs, format switch): `scripts/patch-vue-accessible-color-picker.js` runs after `yarn add` in the Docker build and edits `dist/ColorPicker.js` so only the 2D area and sliders remain.
+- **Hex8** is shown and edited in `GridViewFieldColor` / `RowEditFieldColor`; the popup is for picking only. Hex8 ↔ internal color conversion happens in `ColorPickerPopup` (and handlers that call it).
 - The popup communicates via `v-model` (hex string) and a `@close` event.
 
 ## Dependencies
 
-- `vue-accessible-color-picker` and `colorjs.io` are installed during the Docker frontend build stage (`yarn add` in the Dockerfile), not in the plugin's own `package.json`.
+- `vue-accessible-color-picker` (pinned major in the Dockerfile) and `colorjs.io` are installed during the Docker frontend build stage (`yarn add` in the Dockerfile), not in the plugin's own `package.json`. The patch script is part of that build; bumping the picker version may require adjusting anchors in the script.

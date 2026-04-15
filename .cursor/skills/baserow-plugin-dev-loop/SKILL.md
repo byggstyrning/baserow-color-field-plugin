@@ -1,12 +1,12 @@
 ---
-
-## name: baserow-plugin-dev-loop
+name: baserow-plugin-dev-loop
 description: >-
   Guides the full development cycle for the Baserow color field plugin —
   choosing the right deploy track, running smoke tests, and iterating.
   Use when modifying the plugin, adding a field type, debugging container
   issues, deploying changes, or asking about the dev workflow, deploy-fast,
   sync-backend, or smoke-test.
+---
 
 # Baserow color field plugin — development loop
 
@@ -20,6 +20,7 @@ Dockerfile (multi-stage)
 │   ├── Clones Baserow ${BASEROW_VERSION} source
 │   ├── Copies web-frontend/ plugin into the Baserow tree
 │   ├── yarn install + yarn add vue-accessible-color-picker colorjs.io
+│   ├── node scripts/patch-vue-accessible-color-picker.js (sliders-only picker in bundle)
 │   └── yarn run build → .output/
 └── Stage 2: runtime (baserow/baserow:${BASEROW_VERSION})
     ├── Copies .output/ (frontend bundle)
@@ -72,14 +73,12 @@ Builds a new Docker image with the updated frontend bundle, then recreates the c
 
 ### Environment variable overrides
 
-
-| Variable          | Default                            | Script           |
-| ----------------- | ---------------------------------- | ---------------- |
-| `IMAGE_TAG`       | `baserow-custom:2.1.6-color-field` | `deploy-fast.sh` |
-| `CONTAINER_NAME`  | `baserow`                          | all              |
-| `BASEROW_VERSION` | `2.1.6`                            | `deploy-fast.sh` |
-| `BASE_URL`        | *(empty)*                          | `smoke-test.sh`  |
-
+| Variable | Default | Script |
+|----------|---------|--------|
+| `IMAGE_TAG` | `baserow-custom:2.1.6-color-field` | `deploy-fast.sh` |
+| `CONTAINER_NAME` | `baserow` | all |
+| `BASEROW_VERSION` | `2.1.6` | `deploy-fast.sh` |
+| `BASE_URL` | *(empty)* | `smoke-test.sh` |
 
 Example with overrides:
 
@@ -99,7 +98,6 @@ BASE_URL=http://127.0.0.1 bash ./scripts/smoke-test.sh
 ### Backend changes not taking effect after sync
 
 `sync-backend.sh` copies to **two** paths inside the container:
-
 - `/baserow/data/plugins/baserow_color_field/backend/src/baserow_color_field`
 - `/baserow/venv/lib/python3.14/site-packages/baserow_color_field`
 
@@ -111,6 +109,14 @@ If only one was updated (e.g. script was interrupted), re-run the full script.
 - Verify the new image was used: `docker inspect baserow --format '{{.Config.Image}}'`
 - Check that `ADDITIONAL_MODULES` in the Dockerfile points to the correct `module.js` path.
 
+### Cursor Debug Mode / NDJSON ingest from the browser
+
+Workspace rule: `apps/.cursor/rules/cursor_debug_mode_browser.mdc`.
+
+The plugin does **not** ship Cursor ingest calls; opt-in logging uses `colorFieldDebug` in `utils/colorFieldDebug.js` when you add temporary traces.
+
+**Summary:** `fetch` to `http://127.0.0.1:…/ingest/…` only works when the page runs on the same machine as the Cursor debug ingest. Testing Baserow on a **remote HTTPS host** will not write NDJSON to the agent’s workspace log and may spam the console with failed POSTs. Use code-path analysis, local same-origin testing, or `console.*` traces the user can paste.
+
 ### Python import errors in the container
 
 - Confirm Python version matches: `docker exec baserow python3 --version` (expected: 3.14.x).
@@ -120,4 +126,3 @@ If only one was updated (e.g. script was interrupted), re-run the full script.
 
 - `DEV_WORKFLOW.md` — concise quick-reference for the daily loop
 - `README.md` — project overview, Docker quick start, hex format docs
-

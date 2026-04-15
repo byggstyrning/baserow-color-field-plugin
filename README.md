@@ -13,10 +13,10 @@ Pick, paste, sort, filter — hex colors as first-class data.
 
 | Grid view | Row editor |
 |:---------:|:----------:|
-| Inline swatch + hex input | Full color picker with hue & alpha sliders |
+| Inline swatch + hex input | Swatch and chip show hex; popup is **sliders only** (2D area + hue + alpha) |
 
 - **Hex storage** — `#RGB`, `#RGBA`, `#RRGGBB`, `#RRGGBBAA`, auto-normalized
-- **Color picker** — accessible wheel with hue + alpha sliders, powered by `vue-accessible-color-picker`
+- **Color picker** — `vue-accessible-color-picker` with a **Docker build patch** that strips the library’s text/format row so the shipped UI is visual only. You type or paste hex in the **grid cell** or **row chip**; the popup is for picking, not editing hex strings.
 - **Copy & paste** — paste any valid hex string, invalid values are silently rejected
 - **Sort & filter** — works with Baserow's built-in sort and contains-filter
 - **API ready** — read/write hex strings via the Baserow REST API, upsert supported
@@ -24,9 +24,8 @@ Pick, paste, sort, filter — hex colors as first-class data.
 
 ---
 
-<img width="299" height="364" alt="image" src="https://github.com/user-attachments/assets/5377ff51-7b62-4e64-b3b2-acabea45fcd9" />
-<img width="168" height="242" alt="image" src="https://github.com/user-attachments/assets/215c3588-8820-4bd0-a110-a3bd2b61aa93" />
-
+<img width="299" height="364" alt="Grid: swatch and hex in the cell" src="https://github.com/user-attachments/assets/5377ff51-7b62-4e64-b3b2-acabea45fcd9" />
+<img width="168" height="242" alt="Row modal: chip + sliders-only picker" src="https://github.com/user-attachments/assets/215c3588-8820-4bd0-a110-a3bd2b61aa93" />
 
 ## Quick start
 
@@ -124,7 +123,7 @@ See [DEV_WORKFLOW.md](DEV_WORKFLOW.md) for the full development guide.
 │       │   └── ...
 │       ├── fieldTypes.js               # FieldType registration
 │       └── module.js                   # Nuxt module entry
-└── scripts/                            # Deploy & smoke-test helpers
+└── scripts/                            # Deploy, smoke-test, patch-vue-accessible-color-picker.js (VACP dist edit at image build)
 ```
 
 ---
