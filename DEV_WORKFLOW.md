@@ -13,6 +13,7 @@ bash ./scripts/smoke-test.sh
 ```
 
 This:
+
 - copies the plugin backend into the container
 - updates `site-packages`
 - restarts only the `baserow` container
@@ -31,6 +32,7 @@ bash ./scripts/smoke-test.sh
 ```
 
 This:
+
 - builds only the Baserow plugin image
 - recreates only the `baserow` container with the same runtime config
 - leaves other containers in the stack untouched
@@ -39,8 +41,8 @@ This:
 
 1. Code the change.
 2. Choose a deploy track:
-   - backend-only: `sync-backend.sh`
-   - frontend or mixed: `deploy-fast.sh`
+  - backend-only: `sync-backend.sh`
+  - frontend or mixed: `deploy-fast.sh`
 3. Run `smoke-test.sh`.
 4. Verify functionality in the UI / API.
 
@@ -61,3 +63,4 @@ BASE_URL=http://127.0.0.1 bash ./scripts/smoke-test.sh
 - No `docker compose up --build` for the entire environment.
 - Only the `baserow` container is redeployed.
 - Backend iteration takes seconds instead of minutes.
+

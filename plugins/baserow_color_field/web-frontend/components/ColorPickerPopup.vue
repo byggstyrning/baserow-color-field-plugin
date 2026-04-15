@@ -153,6 +153,8 @@ export default {
 .color-picker-popup .vacp-color-inputs {
   grid-area: inputs;
   grid-column: 1;
+  /* Library default is align-items:center; bottom-align the format switch with the input row. */
+  align-items: flex-end;
 }
 
 .color-picker-popup .vacp-actions {
