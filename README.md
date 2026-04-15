@@ -24,6 +24,10 @@ Pick, paste, sort, filter — hex colors as first-class data.
 
 ---
 
+<img width="299" height="364" alt="image" src="https://github.com/user-attachments/assets/5377ff51-7b62-4e64-b3b2-acabea45fcd9" />
+<img width="168" height="242" alt="image" src="https://github.com/user-attachments/assets/215c3588-8820-4bd0-a110-a3bd2b61aa93" />
+
+
 ## Quick start
 
 ### Option A: Docker (recommended)
